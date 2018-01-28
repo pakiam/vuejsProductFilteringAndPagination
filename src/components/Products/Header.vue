@@ -45,7 +45,6 @@ export default {
       this.$emit('filterByCategory', value)
     },
     resetFilter () {
-      this.currentFilter = 'показать все'
       this.$emit('resetFilter', this.initialState)
     }
   },
@@ -86,6 +85,7 @@ export default {
       height: auto;
       clip: auto;
       opacity: 1;
+      background-color: #fff;
     }
   }
 }

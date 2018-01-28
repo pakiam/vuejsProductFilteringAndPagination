@@ -45,8 +45,8 @@
 
 <script>
 
-import Header from './Header'
-import Product from './Product'
+import Header from '@/components/Products/Header'
+import Product from '@/components/Products/Product'
 export default {
   data () {
     return {
@@ -98,7 +98,7 @@ export default {
     }
   },
   /**
-   * Incoming call with predifined queries
+   * Path with predifined queries
    */
   beforeRouteEnter (to, from, next) {
     next(vm => {
@@ -126,7 +126,7 @@ export default {
   /**
    * Init info for component
    */
-  mounted () {
+  created () {
     this.totalProducts = this.$store.getters.productsLength
     this.products = this.$store.getters.products
   }
