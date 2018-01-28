@@ -1,6 +1,9 @@
 <template>
   <div class="products">
-    <app-header @filterByCategory="updateProducts"></app-header>
+    <app-header @filterByCategory = "updateProducts"
+                @initialFilter = "setCurrentFilter"
+                @resetFilter = "resetProducts"
+                :currentFilter="currentFilter"></app-header>
     <div class="row">
       <div class="medium-12">
         <div class="products__total">{{ totalProducts }} товаров</div>
@@ -30,9 +33,12 @@
           Наличие
         </div>
       </div>
-      <app-product v-for="product in products" :product="product" :key="product.artnumber"></app-product>
+      <app-product v-for="product in getProductsPerPage" :product="product" :key="product.artnumber"></app-product>
       <div class="products__pagination">
-        <router-link :to="{ name: 'Products', query: {page: n} }" v-for="n in Math.ceil(totalProducts / 4)" :key="n">{{ n }}</router-link>
+        <router-link :to="{ name: 'Products', query: {page: n, brand: $route.query.brand} }"
+                     v-for="n in Math.ceil(totalProducts / PER_PAGE)"
+                     :key="n">{{ n }}
+        </router-link>
       </div>
   </div>
 </template>
@@ -41,14 +47,14 @@
 
 import Header from './Header'
 import Product from './Product'
-const PER_PAGE = 4
 export default {
   data () {
     return {
       products: [],
       totalProducts: 0,
-      filteredProducts: [],
-      storeProducts: []
+      page: 1,
+      PER_PAGE: 4,
+      currentFilter: ''
     }
   },
   components: {
@@ -56,32 +62,73 @@ export default {
     appHeader: Header
   },
   methods: {
-    updateProducts (products) {
-      this.filteredProducts = products
-      this.products = this.filteredProducts.slice((this.$route.query.page - 1) * PER_PAGE, this.$route.query.page * PER_PAGE)
-      if (Math.ceil(this.filteredProducts.length / PER_PAGE) < this.$route.query.page) {
-        let lastAvailablePage = Math.ceil(this.filteredProducts.length / PER_PAGE)
-        this.$router.push({path: '/products', query: { page: lastAvailablePage }})
+    setCurrentFilter (newVal) {
+      this.currentFilter = newVal
+    },
+    /**
+     * @param {Object}
+     */
+    routerPush (newQuery) {
+      this.$router.push({name: 'Products', query: newQuery})
+    },
+    /**
+    * Get value and filter products
+    * @param value {String}
+    */
+    updateProducts (value) {
+      this.products = this.$store.getters.products
+      this.setCurrentFilter(value)
+
+      this.products = this.products
+        .filter(product => {
+          return product.brand === value
+        })
+
+      if (this.availablePage < this.$route.query.page) {
+        this.page = this.availablePage
       }
-      this.totalProducts = this.filteredProducts.length
+      this.routerPush({ page: this.page, brand: value })
+      this.totalProducts = this.getProductsLength
+    },
+    resetProducts (newVal) {
+      this.products = this.$store.getters.products
+      this.setCurrentFilter(newVal)
+      this.totalProducts = this.getProductsLength
+      this.routerPush({ page: this.page })
     }
   },
-  beforeRouteUpdate (to, from, next) {
-    this.products =
-      this.filteredProducts.length
-      ? this.filteredProducts.slice((to.query.page - 1) * PER_PAGE, to.query.page * PER_PAGE)
-      : this.storeProducts.slice((to.query.page - 1) * PER_PAGE, to.query.page * PER_PAGE)
-    next()
+  /**
+   * Incoming call with predifined queries
+   */
+  beforeRouteEnter (to, from, next) {
+    next(vm => {
+      if (!(Object.keys(to.query).length === 0) && to.query.constructor === Object) {
+        console.log(to.query)
+        vm.page = to.query.page
+        if (to.query.hasOwnProperty('brand')) {
+          vm.updateProducts(to.query.brand)
+        }
+      }
+    })
   },
   computed: {
-    // totalProducts () {
-    //   return this.products.length
-    // }
+    availablePage () {
+      return Math.ceil(this.products.length / this.PER_PAGE)
+    },
+    getProductsPerPage () {
+      let currentPage = this.$route.query.page || this.page
+      return this.products.slice((currentPage - 1) * this.PER_PAGE, currentPage * this.PER_PAGE)
+    },
+    getProductsLength () {
+      return this.products.length
+    }
   },
-  created () {
-    this.totalProducts = this.$store.getters.products.length
-    this.storeProducts = this.$store.getters.products
-    this.products = this.storeProducts.slice((this.$route.query.page - 1) * PER_PAGE, this.$route.query.page * PER_PAGE)
+  /**
+   * Init info for component
+   */
+  mounted () {
+    this.totalProducts = this.$store.getters.productsLength
+    this.products = this.$store.getters.products
   }
 }
 </script>

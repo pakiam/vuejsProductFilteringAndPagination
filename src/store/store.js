@@ -5,8 +5,6 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    isFiltered: false,
-    filteredProducts: [],
     products: [{
       'artnumber': '123456',
       'name': 'Корм 1',
@@ -135,6 +133,9 @@ export default new Vuex.Store({
   getters: {
     products: state => {
       return state.products
+    },
+    productsLength: state => {
+      return state.products.length
     }
   }
 })

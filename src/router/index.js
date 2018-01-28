@@ -10,7 +10,7 @@ export default new Router({
       path: '/products',
       name: 'Products',
       component: Products,
-      query: { page: '1', brand: 'all' }
+      query: { page: '1', brand: '' }
     }
   ]
 })

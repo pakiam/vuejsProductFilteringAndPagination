@@ -1,9 +1,9 @@
 <template>
   <div class="products__header">
       <div class="row">
-          <div class="medium-2"><span class="ttu">Фильтры</span></div> 
+          <div class="medium-2"><span class="ttu">Фильтры</span></div>
           <div class="medium-8">
-              Бренды: 
+              Бренды:
               <button class="custom-select dib">
                   <div class="custom-select__current">
                       {{currentFilter}}
@@ -24,9 +24,16 @@
 import { mapGetters } from 'vuex'
 
 export default {
+  props: {
+    currentFilter: {
+      default () {
+        return this.initialState
+      }
+    }
+  },
   data () {
     return {
-      currentFilter: 'показать все'
+      initialState: 'показать все'
     }
   },
   methods: {
@@ -35,17 +42,15 @@ export default {
     }),
     filterProducts (event) {
       let value = event.currentTarget.innerText
-      this.currentFilter = value
-      let products = this.$store.state.products.filter(item => {
-        return item.brand === value
-      })
-      this.$emit('filterByCategory', products)
+      this.$emit('filterByCategory', value)
     },
     resetFilter () {
-      let products = this.$store.getters.products
       this.currentFilter = 'показать все'
-      this.$emit('filterByCategory', products)
+      this.$emit('resetFilter', this.initialState)
     }
+  },
+  mounted () {
+    this.$emit('initialFilter', this.initialState)
   }
 }
 </script>
